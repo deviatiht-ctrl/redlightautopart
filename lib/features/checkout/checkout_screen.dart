@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/utils/format.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/commerce_providers.dart';
@@ -76,7 +77,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final methods = ref.watch(paymentMethodsProvider);
     return Scaffold(
       appBar: AppBar(title: Text(s.t('order'))),
-      body: Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(24), children: [
+      body: SafeArea(
+        child: ResponsiveContainer(
+          maxWidth: Responsive.maxFormWidth,
+          child: Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(24), children: [
         Text(s.t('delivery_address'), style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         TextFormField(controller: _address, maxLines: 3, maxLength: 1000,
@@ -111,7 +115,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         Text(s.t('server_total_notice'), style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 24),
         PrimaryButton(label: s.t('continue_payment'), loading: _placing, onPressed: items.isEmpty || _method == null ? null : _placeOrder),
-      ])),
+      ])))),
     );
   }
 }

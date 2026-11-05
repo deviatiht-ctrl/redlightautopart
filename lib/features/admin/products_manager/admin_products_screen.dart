@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/utils/format.dart';
@@ -56,26 +57,36 @@ class AdminProductsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(adminProductsProvider);
     final s = ref.watch(stringsProvider);
+    final hPadding = Responsive.horizontalPadding(context);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
       body: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    s.t('products'),
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                    ),
+                Text(
+                  s.t('products'),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () => showDialog(
                     context: context,
                     builder: (_) => const ProductFormDialog(),
@@ -85,7 +96,7 @@ class AdminProductsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Expanded(
               child: products.when(
                 loading: () => const ListShimmer(itemCount: 6),
@@ -102,120 +113,102 @@ class AdminProductsScreen extends ConsumerWidget {
                         subtitle: s.t('no_products_sub'),
                       )
                     : Card(
+                        clipBehavior: Clip.antiAlias,
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(8),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: DataTable(
-                              columns: [
-                                DataColumn(label: Text(s.t('products'))),
-                                DataColumn(label: Text(s.t('category'))),
-                                DataColumn(label: Text(s.t('price'))),
-                                DataColumn(label: Text(s.t('stock'))),
-                                DataColumn(label: Text(s.t('actions'))),
-                              ],
-                              rows: [
-                                for (final p in list)
-                                  DataRow(
-                                    cells: [
-                                      DataCell(
-                                        Row(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              child: SizedBox(
-                                                width: 40,
-                                                height: 40,
-                                                child: p.imageUrl != null
-                                                    ? CachedNetworkImage(
-                                                        imageUrl: p.imageUrl!,
-                                                        fit: BoxFit.cover,
-                                                        errorWidget:
-                                                            (_, _, _) =>
-                                                                _fallback(),
-                                                      )
-                                                    : _fallback(),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                p.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
+                          scrollDirection: Axis.vertical,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: MediaQuery.sizeOf(context).width - (hPadding * 2) - 32,
+                              ),
+                              child: DataTable(
+                                columns: [
+                                  DataColumn(label: Text(s.t('products'))),
+                                  DataColumn(label: Text(s.t('category'))),
+                                  DataColumn(label: Text(s.t('price'))),
+                                  DataColumn(label: Text(s.t('stock'))),
+                                  DataColumn(label: Text(s.t('actions'))),
+                                ],
+                                rows: [
+                                  for (final p in list)
+                                    DataRow(
+                                      cells: [
+                                        DataCell(
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: SizedBox(
+                                                  width: 40,
+                                                  height: 40,
+                                                  child: p.imageUrl != null
+                                                      ? CachedNetworkImage(
+                                                          imageUrl: p.imageUrl!,
+                                                          fit: BoxFit.cover,
+                                                          errorWidget: (_, _, _) => _fallback(),
+                                                        )
+                                                      : _fallback(),
                                                 ),
                                               ),
-                                            ),
-                                            if (p.isDemo)
-                                              Container(
-                                                margin: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.warning
-                                                      .withValues(alpha: 0.12),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        999,
-                                                      ),
-                                                ),
+                                              const SizedBox(width: 12),
+                                              ConstrainedBox(
+                                                constraints: const BoxConstraints(maxWidth: 240),
                                                 child: Text(
-                                                  s.t('demo_product'),
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppColors.warning,
+                                                  p.name,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                                ),
+                                              ),
+                                              if (p.isDemo)
+                                                Container(
+                                                  margin: const EdgeInsets.only(left: 8),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.warning.withValues(alpha: 0.12),
+                                                    borderRadius: BorderRadius.circular(999),
+                                                  ),
+                                                  child: Text(
+                                                    s.t('demo_product'),
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: AppColors.warning,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      DataCell(Text(p.categoryName ?? '—')),
-                                      DataCell(Text(formatPrice(p.price))),
-                                      DataCell(Text('${p.stock}')),
-                                      DataCell(
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                LucideIcons.pencil,
-                                                size: 18,
+                                        DataCell(Text(p.categoryName ?? '—')),
+                                        DataCell(Text(formatPrice(p.price))),
+                                        DataCell(Text('${p.stock}')),
+                                        DataCell(
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(LucideIcons.pencil, size: 18),
+                                                tooltip: s.t('edit'),
+                                                onPressed: () => showDialog(
+                                                  context: context,
+                                                  builder: (_) => ProductFormDialog(product: p),
+                                                ),
                                               ),
-                                              tooltip: s.t('edit'),
-                                              onPressed: () => showDialog(
-                                                context: context,
-                                                builder: (_) =>
-                                                    ProductFormDialog(
-                                                      product: p,
-                                                    ),
+                                              IconButton(
+                                                icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
+                                                tooltip: s.t('delete'),
+                                                onPressed: () => _delete(context, ref, p),
                                               ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(
-                                                LucideIcons.trash2,
-                                                size: 18,
-                                                color: AppColors.red,
-                                              ),
-                                              tooltip: s.t('delete'),
-                                              onPressed: () =>
-                                                  _delete(context, ref, p),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
+                                      ],
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -229,12 +222,7 @@ class AdminProductsScreen extends ConsumerWidget {
   }
 
   Widget _fallback() => Container(
-    color: AppColors.surfaceLight,
-    alignment: Alignment.center,
-    child: const Icon(
-      LucideIcons.package,
-      size: 18,
-      color: AppColors.textMutedLight,
-    ),
-  );
+        color: AppColors.borderLight,
+        child: const Icon(LucideIcons.package, size: 20, color: AppColors.textMutedLight),
+      );
 }

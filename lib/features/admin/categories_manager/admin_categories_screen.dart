@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/icon_mapper.dart';
 import '../../../core/widgets/primary_button.dart';
@@ -22,25 +23,36 @@ class AdminCategoriesScreen extends ConsumerWidget {
     final categories = ref.watch(categoriesProvider);
     final s = ref.watch(stringsProvider);
 
+    final hPadding = Responsive.horizontalPadding(context);
+
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
       body: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    s.t('categories'),
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                    ),
+                Text(
+                  s.t('categories'),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () => showDialog(
                     context: context,
                     builder: (_) => const _CategoryFormDialog(),
@@ -50,7 +62,7 @@ class AdminCategoriesScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Expanded(
               child: categories.when(
                 loading: () => const ListShimmer(itemCount: 5),

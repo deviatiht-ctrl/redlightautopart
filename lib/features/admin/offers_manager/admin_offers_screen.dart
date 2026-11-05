@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../models/today_offer.dart';
@@ -55,30 +56,34 @@ class AdminOffersScreen extends ConsumerWidget {
     final offersAsync = ref.watch(adminOffersProvider);
     final s = ref.watch(stringsProvider);
 
+    final hPadding = Responsive.horizontalPadding(context);
+
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
       body: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        s.t('admin_offers'),
-                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Jere bandwòl ak flyers pou paj akèy la (Today\'s Offers)',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.t('admin_offers'),
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Jere bandwòl ak flyers pou paj akèy la (Today\'s Offers)',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                    ),
+                  ],
                 ),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
@@ -96,7 +101,7 @@ class AdminOffersScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Expanded(
               child: offersAsync.when(
                 loading: () => const ListShimmer(itemCount: 4),

@@ -1,5 +1,9 @@
 {
   "name": "redlight-autoparts-web",
   "version": "1.0.0",
-  "description": "Redlight Autoparts — Web & Admin Panel"
+  "description": "Redlight Autoparts — Web & Admin Panel & PWA",
+  "scripts": {
+    "build": "node -e \"console.log('Deploying Redlight Web Application & PWA from build/web')\"",
+    "start": "npx serve build/web"
+  }
 }

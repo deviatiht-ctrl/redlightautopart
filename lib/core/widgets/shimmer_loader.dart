@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../theme/colors.dart';
+import '../utils/responsive.dart';
 
 /// Bwòs shimmer — tout loading state nan app la pase pa la.
 class ShimmerBox extends StatelessWidget {
@@ -40,18 +41,20 @@ class ShimmerBox extends StatelessWidget {
 
 /// Shimmer pou grid pwodwi (katalòg / home).
 class ProductGridShimmer extends StatelessWidget {
-  const ProductGridShimmer({super.key, this.itemCount = 6});
+  const ProductGridShimmer({super.key, this.itemCount = 6, this.crossAxisCount});
 
   final int itemCount;
+  final int? crossAxisCount;
 
   @override
   Widget build(BuildContext context) {
+    final cols = crossAxisCount ?? Responsive.productGridColumns(context);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: cols,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 0.66,

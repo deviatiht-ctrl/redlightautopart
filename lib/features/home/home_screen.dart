@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/colors.dart';
 import '../../core/utils/format.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/shimmer_loader.dart';
 import '../../models/category.dart';
 import '../../providers/catalog_providers.dart';
@@ -210,9 +211,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: RefreshIndicator(
           color: AppColors.red,
           onRefresh: _refresh,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
+          child: ResponsiveContainer(
+            maxWidth: Responsive.maxContentWidth,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
               // Top Vehicle Header Bar
               SliverToBoxAdapter(
                 child: _VehicleHeader(
@@ -434,7 +437,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -1229,70 +1233,92 @@ class _CategoriesList extends ConsumerWidget {
       data: (categories) {
         if (categories.isEmpty) return const SizedBox.shrink();
 
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: categories.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (_, i) {
-            final cat = categories[i];
-            final imgUrl = _getCategoryImageUrl(cat);
-
-            return GestureDetector(
-              onTap: () {
-                ref.read(catalogFilterProvider.notifier).update(
-                      CatalogFilter(categoryId: cat.id),
-                    );
-                context.go('/catalog');
-              },
-              child: Container(
-                height: 86,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1B1E26) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF2C3240) : const Color(0xFFE5E7EB),
-                    width: 1.2,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final cols = Responsive.categoryColumns(context);
+            if (cols == 1) {
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: categories.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (_, i) => _buildCategoryTile(context, ref, categories[i], isDark),
+              );
+            }
+            const spacing = 12.0;
+            final itemWidth = (constraints.maxWidth - (spacing * (cols - 1))) / cols;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                for (final cat in categories)
+                  SizedBox(
+                    width: itemWidth,
+                    child: _buildCategoryTile(context, ref, cat, isDark),
                   ),
-                  boxShadow: AppShadows.elevated(isDark),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Row(
-                  children: [
-                    // Component image on left
-                    SizedBox(
-                      width: 110,
-                      height: double.infinity,
-                      child: CachedNetworkImage(
-                        imageUrl: imgUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => const ShimmerBox(radius: 0),
-                        errorWidget: (_, _, _) => const Icon(LucideIcons.wrench, color: Colors.grey),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Category Name on right
-                    Expanded(
-                      child: Text(
-                        cat.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF111827),
-                        ),
-                      ),
-                    ),
-                    const Icon(LucideIcons.chevronRight, size: 18, color: Colors.grey),
-                    const SizedBox(width: 14),
-                  ],
-                ),
-              ),
+              ],
             );
           },
         );
       },
     );
+  }
+
+  Widget _buildCategoryTile(BuildContext context, WidgetRef ref, Category cat, bool isDark) {
+    final imgUrl = _getCategoryImageUrl(cat);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        ref.read(catalogFilterProvider.notifier).update(
+              CatalogFilter(categoryId: cat.id),
+            );
+        GoRouter.of(context).go('/catalog');
+      },
+      child: Container(
+            height: 86,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1B1E26) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2C3240) : const Color(0xFFE5E7EB),
+                width: 1.2,
+              ),
+              boxShadow: AppShadows.elevated(isDark),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Row(
+              children: [
+                // Component image on left
+                SizedBox(
+                  width: 110,
+                  height: double.infinity,
+                  child: CachedNetworkImage(
+                    imageUrl: imgUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) => const ShimmerBox(radius: 0),
+                    errorWidget: (_, _, _) => const Icon(LucideIcons.wrench, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Category Name on right
+                Expanded(
+                  child: Text(
+                    cat.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                const Icon(LucideIcons.chevronRight, size: 18, color: Colors.grey),
+                const SizedBox(width: 14),
+              ],
+            ),
+          ),
+        );
   }
 }

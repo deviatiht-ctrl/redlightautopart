@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/utils/format.dart';
@@ -43,10 +44,12 @@ class AdminOrdersScreen extends ConsumerWidget {
     final orders = ref.watch(adminOrdersProvider);
     final s = ref.watch(stringsProvider);
 
+    final hPadding = Responsive.horizontalPadding(context);
+
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
       body: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -109,86 +112,93 @@ class _AdminOrderCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '#${order.id.substring(0, 8).toUpperCase()}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                        ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#${order.id.substring(0, 8).toUpperCase()}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
                       ),
-                      Text(
-                        formatDate(order.createdAt),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textMutedLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  formatPrice(order.total),
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.red,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Builder(builder: (context) {
-                  // change_order_status() pèmèt sèlman confirmed→shipped→delivered
-                  // lè peman an 'paid'. Montre sèlman tranzisyon valab yo.
-                  final next = switch (order.status) {
-                    'confirmed' when order.paymentStatus == 'paid' => 'shipped',
-                    'shipped' when order.paymentStatus == 'paid' => 'delivered',
-                    _ => null,
-                  };
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(999),
                     ),
-                    child: next == null
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(
-                              orderStatusLabel(s, order.status),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: statusColor,
-                              ),
-                            ),
-                          )
-                        : DropdownButton<String>(
-                            value: order.status,
-                            underline: const SizedBox.shrink(),
-                            isDense: true,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: statusColor,
-                            ),
-                            items: [
-                              for (final st in [order.status, next])
-                                DropdownMenuItem(
-                                  value: st,
-                                  child: Text(orderStatusLabel(s, st)),
+                    Text(
+                      formatDate(order.createdAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMutedLight,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      formatPrice(order.total),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.red,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Builder(builder: (context) {
+                      // change_order_status() pèmèt sèlman confirmed→shipped→delivered
+                      // lè peman an 'paid'. Montre sèlman tranzisyon valab yo.
+                      final next = switch (order.status) {
+                        'confirmed' when order.paymentStatus == 'paid' => 'shipped',
+                        'shipped' when order.paymentStatus == 'paid' => 'delivered',
+                        _ => null,
+                      };
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: next == null
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Text(
+                                  orderStatusLabel(s, order.status),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: statusColor,
+                                  ),
                                 ),
-                            ],
-                            onChanged: (v) {
-                              if (v != null && v != order.status) onStatusChanged(v);
-                            },
-                          ),
-                  );
-                }),
+                              )
+                            : DropdownButton<String>(
+                                value: order.status,
+                                underline: const SizedBox.shrink(),
+                                isDense: true,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor,
+                                ),
+                                items: [
+                                  for (final st in [order.status, next])
+                                    DropdownMenuItem(
+                                      value: st,
+                                      child: Text(orderStatusLabel(s, st)),
+                                    ),
+                                ],
+                                onChanged: (v) {
+                                  if (v != null && v != order.status) onStatusChanged(v);
+                                },
+                              ),
+                      );
+                    }),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 10),

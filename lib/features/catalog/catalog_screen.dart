@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/icon_mapper.dart';
 import '../../core/widgets/product_card.dart';
@@ -86,9 +87,14 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         filter.maxPrice != null ||
         filter.sort != 'newest';
 
+    final cols = Responsive.productGridColumns(context);
+    final isWide = cols > 2;
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: ResponsiveContainer(
+          maxWidth: Responsive.maxContentWidth,
+          child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -278,13 +284,12 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                       )
                     : GridView.builder(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 0.66,
-                            ),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: isWide ? 0.72 : 0.66,
+                        ),
                         itemCount: products.length,
                         itemBuilder: (_, i) =>
                             ProductCard(product: products[i]),
@@ -294,7 +299,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   void _openFilterSheet(

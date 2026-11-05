@@ -32,26 +32,32 @@ class GlassNavBar extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: GlassContainer(
-          borderRadius: 999,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              for (var i = 0; i < _items.length; i++)
-                _NavItem(
-                  icon: _items[i].$1,
-                  label: s.t(_items[i].$2),
-                  active: i == currentIndex,
-                  badge: i == 2 && cartCount > 0 ? cartCount : null,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    onTap(i);
-                  },
-                ),
-            ],
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: GlassContainer(
+              borderRadius: 999,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  for (var i = 0; i < _items.length; i++)
+                    _NavItem(
+                      icon: _items[i].$1,
+                      label: s.t(_items[i].$2),
+                      active: i == currentIndex,
+                      badge: i == 2 && cartCount > 0 ? cartCount : null,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        onTap(i);
+                      },
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

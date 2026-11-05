@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/glass_container.dart';
 import '../../core/widgets/icon_mapper.dart';
 import '../../core/widgets/product_card.dart';
@@ -130,7 +131,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         ),
         data: (product) => Stack(
           children: [
-            CustomScrollView(
+            ResponsiveContainer(
+              maxWidth: Responsive.maxDetailWidth,
+              child: CustomScrollView(
               slivers: [
                 // Galeri imaj
                 SliverToBoxAdapter(
@@ -360,15 +363,22 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 ),
               ],
             ),
-            // Bar anba glassmorphic: kantite + ajoute
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: GlassContainer(
-                borderRadius: 999,
-                padding: const EdgeInsets.all(8),
-                child: Row(
+          ),
+          // Bar anba glassmorphic: kantite + ajoute
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 580),
+                  child: GlassContainer(
+                    borderRadius: 999,
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
                   children: [
                     _QtyButton(
                       icon: LucideIcons.minus,
@@ -415,10 +425,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
-    );
+    ],
+  ),
+),
+);
   }
 }
 

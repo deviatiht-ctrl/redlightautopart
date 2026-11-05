@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../l10n/app_strings.dart';
 import '../../models/app_user.dart';
@@ -25,9 +26,11 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-          children: [
+        child: ResponsiveContainer(
+          maxWidth: 800,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+            children: [
             Text(
               s.t('profile'),
               style: const TextStyle(
@@ -230,7 +233,8 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   /// Sheet chanjman lang — tout UI chanje imedyatman via localeProvider.

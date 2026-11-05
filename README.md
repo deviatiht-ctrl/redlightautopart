@@ -5,7 +5,8 @@ App e-commerce pyès machin pou mache Ayisyen — **Flutter** (app kliyan mobile
 ## Stack
 
 - **Mobile (kliyan)** : Flutter — Android + iOS, tèm sombre (nwa/rouj/blan)
-- **Web (admin)** : Flutter Web — menm codebase, routes `/admin`, tèm clè
+- **Web & PWA (kliyan + admin)** : Flutter Web — menm codebase, responsive sou tout ekran (telefòn, tablèt, laptop, desktop), PWA enstalab ak logo sou telefòn, deplwaman Vercel ultra-rapid
+- **Admin Panel** : `/admin` avèk jesyon pwodwi, kategori, kòmand, ofri, retrè, ak dokiman legal
 - **Backend** : Supabase (Auth, Postgres, Storage, Realtime)
 - **State** : Riverpod · **Navigation** : GoRouter · **Icons** : Lucide · **Font** : DM Sans
 - **Lang** : 4 lang — Français (default), Kreyòl ayisyen, English, Español.

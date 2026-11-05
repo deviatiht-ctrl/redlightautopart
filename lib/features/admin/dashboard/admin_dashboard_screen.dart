@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/utils/format.dart';
 import '../../../providers/admin_providers.dart';
@@ -16,6 +17,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final stats = ref.watch(adminStatsProvider);
     final orders = ref.watch(adminOrdersProvider);
     final s = ref.watch(stringsProvider);
+    final hPadding = Responsive.horizontalPadding(context);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceLight,
@@ -26,7 +28,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           ref.invalidate(adminOrdersProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: 24),
           children: [
             Text(
               s.t('dashboard'),
@@ -35,38 +37,56 @@ class AdminDashboardScreen extends ConsumerWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             stats.when(
               loading: () => const SizedBox(height: 120, child: ListShimmer(itemCount: 1, itemHeight: 110)),
               error: (_, _) => Text(s.t('stats_load_error')),
-              data: (stats) => Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _StatCard(
-                    icon: LucideIcons.package,
-                    label: s.t('products'),
-                    value: '${stats.productCount}',
-                  ),
-                  _StatCard(
-                    icon: LucideIcons.receipt,
-                    label: s.t('orders_today'),
-                    value: '${stats.ordersToday}',
-                  ),
-                  _StatCard(
-                    icon: LucideIcons.clock,
-                    label: s.t('pending'),
-                    value: '${stats.pendingOrders}',
-                  ),
-                  _StatCard(
-                    icon: LucideIcons.trendingUp,
-                    label: s.t('total_sales'),
-                    value: formatPrice(stats.totalRevenue),
-                  ),
-                ],
+              data: (stats) => LayoutBuilder(
+                builder: (context, constraints) {
+                  final totalWidth = constraints.maxWidth;
+                  double cardWidth;
+                  if (totalWidth < 500) {
+                    cardWidth = totalWidth; // 1 kolòn sou ti telefòn
+                  } else if (totalWidth < 850) {
+                    cardWidth = (totalWidth - 16) / 2; // 2 kolòn
+                  } else {
+                    cardWidth = (totalWidth - 48) / 4; // 4 kolòn sou gwo ekran
+                  }
+
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      _StatCard(
+                        width: cardWidth,
+                        icon: LucideIcons.package,
+                        label: s.t('products'),
+                        value: '${stats.productCount}',
+                      ),
+                      _StatCard(
+                        width: cardWidth,
+                        icon: LucideIcons.receipt,
+                        label: s.t('orders_today'),
+                        value: '${stats.ordersToday}',
+                      ),
+                      _StatCard(
+                        width: cardWidth,
+                        icon: LucideIcons.clock,
+                        label: s.t('pending'),
+                        value: '${stats.pendingOrders}',
+                      ),
+                      _StatCard(
+                        width: cardWidth,
+                        icon: LucideIcons.trendingUp,
+                        label: s.t('total_sales'),
+                        value: formatPrice(stats.totalRevenue),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
             Text(
               s.t('recent_orders'),
               style: const TextStyle(
@@ -134,16 +154,18 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.width,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
+      width: width,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -165,7 +187,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             value,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Text(

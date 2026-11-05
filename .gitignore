@@ -48,4 +48,9 @@ app.*.map.json
 /android/app/release
 
 # Widget Preview related
+.preview/
+
+# Supabase CLI temp
+supabase/.temp/
+
 .widget_preview/

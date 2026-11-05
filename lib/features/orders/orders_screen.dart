@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/colors.dart';
+import '../../core/utils/responsive.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/shimmer_loader.dart';
 import '../../core/utils/format.dart';
@@ -32,43 +33,48 @@ class OrdersScreen extends ConsumerWidget {
         ),
         title: Text(s.t('my_orders')),
       ),
-      body: user == null
-          ? EmptyState(
-              icon: LucideIcons.lock,
-              title: s.t('sign_in_to_see_orders'),
-              actionLabel: s.t('sign_in'),
-              onAction: () => context.push('/auth?redirect=/orders'),
-            )
-          : orders.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.all(20),
-                child: ListShimmer(itemCount: 4, itemHeight: 110),
-              ),
-              error: (_, _) => EmptyState(
-                icon: LucideIcons.alertCircle,
-                title: s.t('orders_load_error'),
-                actionLabel: s.t('retry'),
-                onAction: () => ref.invalidate(myOrdersProvider),
-              ),
-              data: (orders) => orders.isEmpty
-                  ? EmptyState(
-                      icon: LucideIcons.package,
-                      title: s.t('no_orders'),
-                      subtitle: s.t('no_orders_sub'),
-                    )
-                  : RefreshIndicator(
-                      color: AppColors.red,
-                      onRefresh: () async =>
-                          ref.invalidate(myOrdersProvider),
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: orders.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (_, i) => _OrderCard(order: orders[i]),
-                      ),
-                    ),
-            ),
+      body: SafeArea(
+        child: ResponsiveContainer(
+          maxWidth: 800,
+          child: user == null
+              ? EmptyState(
+                  icon: LucideIcons.lock,
+                  title: s.t('sign_in_to_see_orders'),
+                  actionLabel: s.t('sign_in'),
+                  onAction: () => context.push('/auth?redirect=/orders'),
+                )
+              : orders.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: ListShimmer(itemCount: 4, itemHeight: 110),
+                  ),
+                  error: (_, _) => EmptyState(
+                    icon: LucideIcons.alertCircle,
+                    title: s.t('orders_load_error'),
+                    actionLabel: s.t('retry'),
+                    onAction: () => ref.invalidate(myOrdersProvider),
+                  ),
+                  data: (orders) => orders.isEmpty
+                      ? EmptyState(
+                          icon: LucideIcons.package,
+                          title: s.t('no_orders'),
+                          subtitle: s.t('no_orders_sub'),
+                        )
+                      : RefreshIndicator(
+                          color: AppColors.red,
+                          onRefresh: () async =>
+                              ref.invalidate(myOrdersProvider),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: orders.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (_, i) => _OrderCard(order: orders[i]),
+                          ),
+                        ),
+                ),
+        ),
+      ),
     );
   }
 }

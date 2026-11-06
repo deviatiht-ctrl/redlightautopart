@@ -26,7 +26,7 @@ class CommerceService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> paymentMethods() => client.from('payment_methods').select().order('sort_order');
+  Future<List<Map<String, dynamic>>> paymentMethods() => client.from('redlight_payment_methods').select().order('sort_order');
 
   Future<String> uploadLogo(Uint8List bytes, String extension) async {
     final ext = extension.toLowerCase().replaceAll('jpg', 'jpeg');
@@ -34,7 +34,7 @@ class CommerceService {
       throw const CommerceException('INVALID_IMAGE');
     }
     final path = '${const Uuid().v4()}.$ext';
-    await client.storage.from('payment-logos').uploadBinary(path, bytes, fileOptions: FileOptions(contentType: 'image/$ext'));
-    return client.storage.from('payment-logos').getPublicUrl(path);
+    await client.storage.from('redlight-payment-logos').uploadBinary(path, bytes, fileOptions: FileOptions(contentType: 'image/$ext'));
+    return client.storage.from('redlight-payment-logos').getPublicUrl(path);
   }
 }

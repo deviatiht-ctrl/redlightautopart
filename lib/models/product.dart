@@ -41,13 +41,15 @@ class Product {
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    final embeddedItems = json['order_items'] as List?;
+    final embeddedItems = (json['redlight_order_items'] ?? json['order_items']) as List?;
     final sold = embeddedItems == null
         ? 0
         : embeddedItems.fold<int>(
             0,
             (sum, e) => sum + ((e as Map)['quantity'] as num? ?? 0).toInt(),
           );
+
+    final catMap = (json['redlight_categories'] ?? json['categories']) as Map?;
 
     return Product(
       id: json['id'] as String,
@@ -56,7 +58,7 @@ class Product {
       price: (json['price'] as num).toDouble(),
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       categoryId: json['category_id'] as String?,
-      categoryName: (json['categories'] as Map?)?['name'] as String?,
+      categoryName: catMap?['name'] as String?,
       compatibleModels:
           (json['compatible_models'] as List?)?.cast<String>() ?? const [],
       images: (json['images'] as List?)?.cast<String>() ?? const [],

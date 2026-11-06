@@ -64,13 +64,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen>
       final user = ref.read(currentUserProvider);
       if (user == null) return;
       final order = await client
-          .from('orders')
+          .from('redlight_orders')
           .select()
           .eq('id', widget.orderId)
           .eq('user_id', user.id)
           .single();
       final payment = await client
-          .from('payments')
+          .from('redlight_payments')
           .select()
           .eq('order_id', widget.orderId)
           .maybeSingle();

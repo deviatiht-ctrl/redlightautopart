@@ -6,5 +6,5 @@ final commerceServiceProvider = Provider<CommerceService>((ref) => CommerceServi
 final paymentMethodsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) => ref.watch(commerceServiceProvider).paymentMethods());
 final withdrawalsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) {
   ref.watch(currentUserProvider);
-  return ref.watch(supabaseClientProvider).from('merchant_withdrawals').select().order('created_at', ascending: false).limit(50);
+  return ref.watch(supabaseClientProvider).from('redlight_merchant_withdrawals').select().order('created_at', ascending: false).limit(50);
 });

@@ -44,7 +44,7 @@ class OffersService {
 
   Future<List<TodayOffer>> fetchOffers({bool onlyActive = true}) async {
     try {
-      var query = _client.from('today_offers').select();
+      var query = _client.from('redlight_today_offers').select();
       if (onlyActive) {
         query = query.eq('is_active', true);
       }
@@ -77,7 +77,7 @@ class OffersService {
         payload.remove('id');
       }
       final res = await _client
-          .from('today_offers')
+          .from('redlight_today_offers')
           .upsert(payload)
           .select()
           .single();
@@ -99,7 +99,7 @@ class OffersService {
 
   Future<void> deleteOffer(String id) async {
     try {
-      await _client.from('today_offers').delete().eq('id', id);
+      await _client.from('redlight_today_offers').delete().eq('id', id);
     } catch (_) {}
 
     final current = _getFromLocal().isEmpty ? [..._defaultOffers] : _getFromLocal();

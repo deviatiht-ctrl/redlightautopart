@@ -122,15 +122,15 @@ function uuid(value: unknown): string {
 }
 
 async function ownedOrder(id: unknown, user: Data): Promise<Data> {
-  const rows = await database(`orders?id=eq.${uuid(id)}&user_id=eq.${uuid(user.id)}&select=*`);
+  const rows = await database(`redlight_orders?id=eq.${uuid(id)}&user_id=eq.${uuid(user.id)}&select=*`);
   if (!rows.length) throw new ApiError('ORDER_NOT_FOUND', 404);
   return rows[0];
 }
 
 async function recordFailedCheck(payment: Data, source: CheckSource, code: string): Promise<void> {
   try {
-    await database('payment_checks', 'POST', { order_id: payment.order_id, reference: payment.reference, source, result: 'error', error: code });
-    await database(`payments?order_id=eq.${payment.order_id}`, 'PATCH', { last_error: code, last_verified_at: new Date().toISOString(), verify_attempts: Number(payment.verify_attempts ?? 0) + 1 });
+    await database('redlight_payment_checks', 'POST', { order_id: payment.order_id, reference: payment.reference, source, result: 'error', error: code });
+    await database(`redlight_payments?order_id=eq.${payment.order_id}`, 'PATCH', { last_error: code, last_verified_at: new Date().toISOString(), verify_attempts: Number(payment.verify_attempts ?? 0) + 1 });
   } catch { /* pa kache erè orijinal la */ }
 }
 
@@ -147,18 +147,18 @@ async function verifyPayment(payment: Data, source: CheckSource = 'client'): Pro
     throw error;
   }
   const result = normalizeVerification(verified);
-  await database('rpc/apply_payment', 'POST', {
+  await database('rpc/redlight_apply_payment', 'POST', {
     p_reference: payment.reference, p_transaction: result.transaction, p_amount: result.amount, p_paid: result.paid,
     p_provider_status: result.status || null, p_method: result.method, p_source: source, p_raw: verified,
   });
-  return (await database(`payments?order_id=eq.${payment.order_id}&select=*`))[0];
+  return (await database(`redlight_payments?order_id=eq.${payment.order_id}&select=*`))[0];
 }
 
 // Rele pa pg_cron (gade 10_payment_verification.sql) pou verifye peman ki an atant.
 async function reconcilePayments(days = 3): Promise<Data> {
   const since = new Date(Date.now() - Math.min(Math.max(Math.trunc(days) || 3, 1), 60) * 86400000).toISOString();
   const stale = new Date(Date.now() - 60000).toISOString();
-  const rows = await database(`payments?select=*&created_at=gte.${since}&and=(or(status.eq.pending,and(status.eq.creating,verify_attempts.lt.10)),or(last_verified_at.is.null,last_verified_at.lt."${stale}"))&order=created_at.asc&limit=25`);
+  const rows = await database(`redlight_payments?select=*&created_at=gte.${since}&and=(or(status.eq.pending,and(status.eq.creating,verify_attempts.lt.10)),or(last_verified_at.is.null,last_verified_at.lt."${stale}"))&order=created_at.asc&limit=25`);
   const summary = { checked: 0, paid: 0, errors: 0 };
   for (const row of rows) {
     summary.checked++;
@@ -181,7 +181,7 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     if (!['transaction.created', 'transaction.status_changed'].includes(data.event) || data.merchant?.client_id !== secret('PLOP_CLIENT_ID')) throw new ApiError('INVALID_WEBHOOK');
     const reference = data.transaction?.reference_id;
     if (typeof reference !== 'string' || !/^PAY-[0-9a-f-]{36}$/i.test(reference)) throw new ApiError('INVALID_REFERENCE');
-    const payments = await database(`payments?reference=eq.${encodeURIComponent(reference)}&select=*`);
+    const payments = await database(`redlight_payments?reference=eq.${encodeURIComponent(reference)}&select=*`);
     if (!payments.length) throw new ApiError('PAYMENT_NOT_FOUND', 404);
     await verifyPayment(payments[0], 'webhook');
     return { received: true };
@@ -199,13 +199,13 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     try { order = await ownedOrder(data.order_id, user); }
     catch (error) {
       // Admin ka verifye peman nenpòt kòmand.
-      if (data.action !== 'payment.verify' || !(error instanceof ApiError) || error.code !== 'ORDER_NOT_FOUND' || !await database('rpc/is_admin', 'POST', {}, jwt)) throw error;
-      const rows = await database(`orders?id=eq.${uuid(data.order_id)}&select=*`);
+      if (data.action !== 'payment.verify' || !(error instanceof ApiError) || error.code !== 'ORDER_NOT_FOUND' || !await database('rpc/redlight_is_admin', 'POST', {}, jwt)) throw error;
+      const rows = await database(`redlight_orders?id=eq.${uuid(data.order_id)}&select=*`);
       if (!rows.length) throw new ApiError('ORDER_NOT_FOUND', 404);
       order = rows[0];
       source = 'admin';
     }
-    const payments = await database(`payments?order_id=eq.${order.id}&select=*`);
+    const payments = await database(`redlight_payments?order_id=eq.${order.id}&select=*`);
     if (data.action === 'payment.verify') {
       if (!payments.length) throw new ApiError('PAYMENT_NOT_FOUND', 404);
       return await verifyPayment(payments[0], source);
@@ -221,15 +221,15 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
       catch (error) {
         const notFound = error instanceof ApiError && ['PROVIDER_HTTP_400', 'PROVIDER_HTTP_404', 'PROVIDER_HTTP_502'].includes(error.code);
         if (!notFound) throw error;
-        await database(`payments?order_id=eq.${order.id}&status=eq.creating`, 'DELETE');
+        await database(`redlight_payments?order_id=eq.${order.id}&status=eq.creating`, 'DELETE');
       }
     }
     if (order.status !== 'pending') throw new ApiError('INVALID_ORDER_STATE', 409);
-    const methods = await database(`payment_methods?code=eq.${encodeURIComponent(order.payment_method)}&enabled=eq.true&select=code`);
+    const methods = await database(`redlight_payment_methods?code=eq.${encodeURIComponent(order.payment_method)}&enabled=eq.true&select=code`);
     if (!methods.length) throw new ApiError('PAYMENT_METHOD_DISABLED');
     if (order.payment_method === 'moncash_ussd' && !/^509\d{8}$/.test(data.phone_number ?? '')) throw new ApiError('INVALID_PHONE');
     secret('PLOP_CLIENT_ID');
-    const claimed = await database('rpc/claim_payment', 'POST', { p_order_id: order.id });
+    const claimed = await database('rpc/redlight_claim_payment', 'POST', { p_order_id: order.id });
     if (!claimed) throw new ApiError('PAYMENT_ALREADY_STARTED', 409);
     const reference = `PAY-${order.id}`;
     let result: Data;
@@ -242,7 +242,7 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     } catch (error) {
       // Si referans lan deja egziste bò founisè a (repons pèdi), verifye li olye.
       if (error instanceof ApiError && ['PROVIDER_HTTP_404', 'DUPLICATE_REFERENCE'].includes(error.code)) {
-        return await verifyPayment((await database(`payments?order_id=eq.${order.id}&select=*`))[0], 'start');
+        return await verifyPayment((await database(`redlight_payments?order_id=eq.${order.id}&select=*`))[0], 'start');
       }
       throw error;
     }
@@ -251,8 +251,8 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     if (order.payment_method !== 'moncash_ussd' && !url) throw new ApiError('PROVIDER_OUTCOME_UNKNOWN', 502);
     // Patch la a aplike sèlman si peman an toujou 'creating' — yon webhook ki gentan
     // make li 'paid'/'review' pa dwe ekrase.
-    const patched = await database(`payments?order_id=eq.${order.id}&status=eq.creating`, 'PATCH', { transaction_id: String(result.transaction_id), provider_transaction_id: String(result.transaction_id), redirect_url: url, status: 'pending' });
-    const final = patched.length ? patched[0] : (await database(`payments?order_id=eq.${order.id}&select=*`))[0];
+    const patched = await database(`redlight_payments?order_id=eq.${order.id}&status=eq.creating`, 'PATCH', { transaction_id: String(result.transaction_id), provider_transaction_id: String(result.transaction_id), redirect_url: url, status: 'pending' });
+    const final = patched.length ? patched[0] : (await database(`redlight_payments?order_id=eq.${order.id}&select=*`))[0];
     if (!final || !['pending', 'paid', 'review'].includes(final.status)) throw new ApiError('PROVIDER_OUTCOME_UNKNOWN', 503);
     return final;
   }
@@ -263,9 +263,9 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     const claims = JSON.parse(atob(segment.padEnd(Math.ceil(segment.length / 4) * 4, '=')));
     const recent = (claims.amr ?? []).some((entry: Data) => ['password', 'oauth'].includes(entry.method) && entry.timestamp > Date.now() / 1000 - 600);
     if (!recent) throw new ApiError('REAUTHENTICATION_REQUIRED', 401);
-    const active = await database(`orders?user_id=eq.${uuid(user.id)}&or=(status.not.in.(delivered,cancelled),payment_status.eq.review)&select=id&limit=1`);
+    const active = await database(`redlight_orders?user_id=eq.${uuid(user.id)}&or=(status.not.in.(delivered,cancelled),payment_status.eq.review)&select=id&limit=1`);
     if (active.length) throw new ApiError('ACTIVE_ORDERS', 409);
-    if (await database('rpc/is_admin', 'POST', {}, jwt)) throw new ApiError('ADMIN_DELETION_REQUIRES_TRANSFER', 409);
+    if (await database('rpc/redlight_is_admin', 'POST', {}, jwt)) throw new ApiError('ADMIN_DELETION_REQUIRES_TRANSFER', 409);
     const key = secret('SUPABASE_SERVICE_ROLE_KEY');
     const response = await fetch(`${secret('SUPABASE_URL')}/auth/v1/admin/users/${uuid(user.id)}`, {
       method: 'DELETE', headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15000), redirect: 'error',
@@ -274,26 +274,26 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
     return { deleted: true };
   }
 
-  if (!await database('rpc/is_admin', 'POST', {}, jwt)) throw new ApiError('ADMIN_REQUIRED', 403);
+  if (!await database('rpc/redlight_is_admin', 'POST', {}, jwt)) throw new ApiError('ADMIN_REQUIRED', 403);
   if (data.action === 'withdrawal.prepare') {
     if (Deno.env.get('PLOP_WITHDRAWALS_ENABLED') !== 'true') throw new ApiError('WITHDRAWALS_DISABLED', 403);
     const reference = crypto.randomUUID();
     withdrawalPayload(data.amount, data.method, data.recipient, reference, Math.floor(Date.now() / 1000));
-    return (await database('merchant_withdrawals', 'POST', { reference, admin_id: user.id, amount: data.amount, method: data.method, recipient: data.recipient }))[0];
+    return (await database('redlight_merchant_withdrawals', 'POST', { reference, admin_id: user.id, amount: data.amount, method: data.method, recipient: data.recipient }))[0];
   }
   if (data.action === 'withdrawal.execute' || data.action === 'withdrawal.verify') {
-    const rows = await database(`merchant_withdrawals?reference=eq.${uuid(data.reference)}&select=*`);
+    const rows = await database(`redlight_merchant_withdrawals?reference=eq.${uuid(data.reference)}&select=*`);
     if (!rows.length) throw new ApiError('WITHDRAWAL_NOT_FOUND', 404);
     const row = rows[0];
     if (data.action === 'withdrawal.verify') {
       const result = await provider('api/withdraw/marchand/verify', { reference: row.reference }, await merchantToken());
       if (result.data?.reference !== row.reference || !['pending', 'failed', 'success', 'remboursé'].includes(result.data?.status)) throw new ApiError('INVALID_PROVIDER_RESPONSE', 502);
-      return (await database(`merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { status: result.data.status, transaction_id: String(result.data.transaction_id), updated_at: new Date().toISOString() }))[0];
+      return (await database(`redlight_merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { status: result.data.status, transaction_id: String(result.data.transaction_id), updated_at: new Date().toISOString() }))[0];
     }
     if (Deno.env.get('PLOP_WITHDRAWALS_ENABLED') !== 'true') throw new ApiError('WITHDRAWALS_DISABLED', 403);
     if (row.admin_id !== user.id || data.confirmation !== row.reference) throw new ApiError('CONFIRMATION_REQUIRED', 403);
     const token = await merchantToken();
-    if (!await database('rpc/claim_withdrawal', 'POST', { p_reference: row.reference })) throw new ApiError('WITHDRAWAL_ALREADY_STARTED', 409);
+    if (!await database('rpc/redlight_claim_withdrawal', 'POST', { p_reference: row.reference })) throw new ApiError('WITHDRAWAL_ALREADY_STARTED', 409);
     const values = { amount: Number(row.amount), method: row.method, recipient: row.recipient, reference: row.reference };
     try {
       const timestamp = Math.floor(Date.now() / 1000);
@@ -302,13 +302,13 @@ async function processRequest(request: Request, data: Data, raw: string): Promis
       if (typeof signed.withdrawal_token !== 'string' || !signed.withdrawal_token) throw new ApiError('INVALID_PROVIDER_RESPONSE', 502);
       const result = await provider('api/withdraw/marchand', values, signed.withdrawal_token);
       if (result.data?.status !== 'success' || !/^\d+$/.test(String(result.data?.api_reference ?? ''))) throw new ApiError('PROVIDER_OUTCOME_UNKNOWN', 502);
-      return (await database(`merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { status: 'success', transaction_id: String(result.data.transaction_id), updated_at: new Date().toISOString() }))[0];
+      return (await database(`redlight_merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { status: 'success', transaction_id: String(result.data.transaction_id), updated_at: new Date().toISOString() }))[0];
     } catch (error) {
       // Erè definitif -> 'failed'. Rezilta ensèten (timeout, 5xx) -> rete 'processing'
       // pou 'withdrawal.verify' ka rekonsilye pita.
       const code = error instanceof ApiError ? error.code : 'PROVIDER_OUTCOME_UNKNOWN';
       const definitive = ['INSUFFICIENT_BALANCE', 'TOKEN_ALREADY_USED', 'API_TRANSFER_FAILED', 'DUPLICATE_REFERENCE', 'PARAMETER_MISMATCH', 'INVALID_TOKEN_TYPE', 'INVALID_SIGNATURE', 'TIMESTAMP_EXPIRED', 'METHOD_NOT_CONFIGURED', 'NO_CLIENT_SECRET', 'INVALID_WITHDRAWAL', 'INVALID_PROVIDER_RESPONSE'].includes(code);
-      await database(`merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { error_code: code, status: definitive ? 'failed' : 'processing', updated_at: new Date().toISOString() });
+      await database(`redlight_merchant_withdrawals?reference=eq.${row.reference}`, 'PATCH', { error_code: code, status: definitive ? 'failed' : 'processing', updated_at: new Date().toISOString() });
       throw error;
     }
   }

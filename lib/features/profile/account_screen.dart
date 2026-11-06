@@ -138,7 +138,7 @@ class LegalScreen extends ConsumerWidget {
       return Scaffold(appBar: AppBar(), body: Center(child: Text(s.t('document_unavailable'))));
     }
     return Scaffold(appBar: AppBar(title: Text(s.t(kind))), body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: ref.watch(supabaseClientProvider).from('legal_documents').select().eq('kind', kind).inFilter('locale', [locale, 'fr']),
+      future: ref.watch(supabaseClientProvider).from('redlight_legal_documents').select().eq('kind', kind).inFilter('locale', [locale, 'fr']),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
         final rows = snapshot.data ?? [];

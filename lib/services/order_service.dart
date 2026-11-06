@@ -11,7 +11,7 @@ class OrderService {
   final SupabaseClient _client;
 
   static const _selectWithItems =
-      '*, order_items(*, products(name, images))';
+      '*, redlight_order_items(*, redlight_products(name, images))';
 
   Future<String> placeOrder({
     required List<CartItem> items,
@@ -29,7 +29,7 @@ class OrderService {
         .toList();
 
     final orderId = await _client.rpc(
-      'checkout_order',
+      'redlight_checkout_order',
       params: {
         'p_items': payload,
         'p_checkout_key': checkoutKey,
@@ -44,7 +44,7 @@ class OrderService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return const [];
     final data = await _client
-        .from('orders')
+        .from('redlight_orders')
         .select(_selectWithItems)
         .eq('user_id', userId)
         .order('created_at', ascending: false);
@@ -54,7 +54,7 @@ class OrderService {
   /// Admin: tout kòmand.
   Future<List<AppOrder>> fetchAllOrders() async {
     final data = await _client
-        .from('orders')
+        .from('redlight_orders')
         .select(_selectWithItems)
         .order('created_at', ascending: false);
     return data.map((e) => AppOrder.fromJson(e)).toList();
@@ -65,19 +65,19 @@ class OrderService {
 
   /// Admin: chanje estati nenpòt kòmand.
   Future<void> updateStatus(String orderId, String status) async {
-    await _client.rpc('change_order_status', params: {'p_order_id': orderId, 'p_status': status});
+    await _client.rpc('redlight_change_order_status', params: {'p_order_id': orderId, 'p_status': status});
   }
 
   /// Pozisyon kounye a + istorik etap yo pou yon kòmand.
   /// RLS: kliyan an wè kòmand li a sèlman; admin wè tout.
   Future<OrderTrackingInfo> fetchTracking(String orderId) async {
     final row = await _client
-        .from('order_tracking')
+        .from('redlight_order_tracking')
         .select()
         .eq('order_id', orderId)
         .maybeSingle();
     final events = await _client
-        .from('order_tracking_events')
+        .from('redlight_order_tracking_events')
         .select()
         .eq('order_id', orderId)
         .order('created_at', ascending: false);
@@ -97,7 +97,7 @@ class OrderService {
     String? delayNote,
   }) async {
     final note = delayNote?.trim();
-    await _client.from('order_tracking').upsert({
+    await _client.from('redlight_order_tracking').upsert({
       'order_id': orderId,
       'location': location?.trim().isEmpty ?? true ? null : location!.trim(),
       'latitude': latitude,
@@ -120,7 +120,7 @@ class OrderService {
   }) async {
     final loc = location?.trim();
     final n = note?.trim();
-    await _client.from('order_tracking_events').insert({
+    await _client.from('redlight_order_tracking_events').insert({
       'order_id': orderId,
       'kind': kind,
       'location': loc == null || loc.isEmpty ? null : loc,

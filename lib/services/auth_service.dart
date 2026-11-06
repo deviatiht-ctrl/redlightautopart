@@ -53,10 +53,12 @@ class AuthService {
   static bool isKnownAdminEmail(String? email) {
     if (email == null) return false;
     final clean = email.toLowerCase().trim();
-    return clean == 'laurorejeanclarens0@gmail.com' || clean == 'admin@redlight.ht';
+    return clean == 'laurorejeanclarens0@gmail.com' ||
+        clean == 'redlightautomotive945@gmail.com' ||
+        clean == 'admin@redlight.ht';
   }
 
-  /// Verifye si itilizatè konekte a se yon admin (fonksyon SQL is_admin() + verifikasyon imel).
+  /// Verifye si itilizatè konekte a se yon admin (fonksyon SQL redlight_is_admin() + verifikasyon imel).
   Future<bool> isAdmin() async {
     final user = _client.auth.currentUser;
     if (user == null) return false;
@@ -71,20 +73,35 @@ class AuthService {
     }
 
     try {
-      final result = await _client.rpc('is_admin').timeout(const Duration(seconds: 4));
+      final result = await _client.rpc('redlight_is_admin').timeout(const Duration(seconds: 4));
       if (result == true) return true;
-    } catch (_) {}
+    } catch (_) {
+      try {
+        final result = await _client.rpc('is_admin').timeout(const Duration(seconds: 4));
+        if (result == true) return true;
+      } catch (_) {}
+    }
 
     if (email != null) {
       try {
         final res = await _client
-            .from('admin_users')
+            .from('redlight_admin_users')
             .select('email')
             .ilike('email', email)
             .maybeSingle()
             .timeout(const Duration(seconds: 4));
         if (res != null) return true;
-      } catch (_) {}
+      } catch (_) {
+        try {
+          final res = await _client
+              .from('admin_users')
+              .select('email')
+              .ilike('email', email)
+              .maybeSingle()
+              .timeout(const Duration(seconds: 4));
+          if (res != null) return true;
+        } catch (_) {}
+      }
     }
 
     return false;

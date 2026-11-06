@@ -14,7 +14,7 @@ class ProductService {
   // ---------- Kategori ----------
 
   Future<List<Category>> fetchCategories() async {
-    final data = await _client.from('categories').select().order('name');
+    final data = await _client.from('redlight_categories').select().order('name');
     return data.map((e) => Category.fromJson(e)).toList();
   }
 
@@ -26,7 +26,7 @@ class ProductService {
     };
     try {
       final data = await _client
-          .from('categories')
+          .from('redlight_categories')
           .insert(payload)
           .select()
           .single();
@@ -34,7 +34,7 @@ class ProductService {
     } catch (_) {
       payload.remove('image_url');
       final data = await _client
-          .from('categories')
+          .from('redlight_categories')
           .insert(payload)
           .select()
           .single();
@@ -45,20 +45,20 @@ class ProductService {
   Future<void> updateCategory(Category category) async {
     try {
       await _client
-          .from('categories')
+          .from('redlight_categories')
           .update(category.toJson())
           .eq('id', category.id);
     } catch (_) {
       final fallbackPayload = {'name': category.name, 'icon': category.icon};
       await _client
-          .from('categories')
+          .from('redlight_categories')
           .update(fallbackPayload)
           .eq('id', category.id);
     }
   }
 
   Future<void> deleteCategory(String id) =>
-      _client.from('categories').delete().eq('id', id);
+      _client.from('redlight_categories').delete().eq('id', id);
 
   /// Upload yon imaj pou kategori nan bucket `product-images`, retounen URL piblik la.
   Future<String> uploadCategoryImage(Uint8List bytes, String extension) async {
@@ -87,7 +87,7 @@ class ProductService {
     String sort = 'newest',
     int? limit,
   }) async {
-    var query = _client.from('products').select('*, categories(name)');
+    var query = _client.from('redlight_products').select('*, redlight_categories(name)');
 
     if (categoryId != null && categoryId.isNotEmpty) {
       query = query.eq('category_id', categoryId);
@@ -113,8 +113,8 @@ class ProductService {
   /// Pi popilè = pwodwi ki gen plis vant (kalkile sou order_items reyèl).
   Future<List<Product>> fetchPopular({int limit = 10}) async {
     final data = await _client
-        .from('products')
-        .select('*, categories(name), order_items(quantity)');
+        .from('redlight_products')
+        .select('*, redlight_categories(name), redlight_order_items(quantity)');
     final products = data.map((e) => Product.fromJson(e)).toList();
     products.sort((a, b) => b.soldCount.compareTo(a.soldCount));
     return products.take(limit).toList();
@@ -122,8 +122,8 @@ class ProductService {
 
   Future<Product> fetchProduct(String id) async {
     final data = await _client
-        .from('products')
-        .select('*, categories(name)')
+        .from('redlight_products')
+        .select('*, redlight_categories(name)')
         .eq('id', id)
         .single();
     return Product.fromJson(data);
@@ -132,8 +132,8 @@ class ProductService {
   Future<List<Product>> fetchByIds(List<String> ids) async {
     if (ids.isEmpty) return const [];
     final data = await _client
-        .from('products')
-        .select('*, categories(name)')
+        .from('redlight_products')
+        .select('*, redlight_categories(name)')
         .inFilter('id', ids);
     return data.map((e) => Product.fromJson(e)).toList();
   }
@@ -142,25 +142,25 @@ class ProductService {
 
   Future<Product> createProduct(Map<String, dynamic> payload) async {
     final data = await _client
-        .from('products')
+        .from('redlight_products')
         .insert(payload)
-        .select('*, categories(name)')
+        .select('*, redlight_categories(name)')
         .single();
     return Product.fromJson(data);
   }
 
   Future<Product> updateProduct(String id, Map<String, dynamic> payload) async {
     final data = await _client
-        .from('products')
+        .from('redlight_products')
         .update(payload)
         .eq('id', id)
-        .select('*, categories(name)')
+        .select('*, redlight_categories(name)')
         .single();
     return Product.fromJson(data);
   }
 
   Future<void> deleteProduct(String id) =>
-      _client.from('products').delete().eq('id', id);
+      _client.from('redlight_products').delete().eq('id', id);
 
   /// Upload yon imaj nan bucket `product-images`, retounen URL piblik la.
   Future<String> uploadProductImage(Uint8List bytes, String extension) async {

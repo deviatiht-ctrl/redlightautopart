@@ -6,9 +6,9 @@ abstract final class AppConstants {
   static const appName = 'Redlight Autoparts';
   static const poweredBy = 'Powered by Cvisual';
   static const currency = 'HTG';
-  static const storageBucket = 'product-images';
+  static const storageBucket = 'redlight-product-images';
 
-  /// Mòd peman yo soti nan tab `payment_methods` (admin ka aktive/dezaktive).
+  /// Mòd peman yo soti nan tab `redlight_payment_methods` (admin ka aktive/dezaktive).
   /// Label yo tradui nan app_strings.dart ak account_strings.dart (`payment_<code>`).
   static const orderStatuses = <String>[
     'pending',

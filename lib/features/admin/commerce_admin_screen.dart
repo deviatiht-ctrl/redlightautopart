@@ -48,7 +48,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 800);
     if (image == null) return;
     final url = await ref.read(commerceServiceProvider).uploadLogo(await image.readAsBytes(), image.name.split('.').last);
-    await ref.read(supabaseClientProvider).from('payment_methods').update({'logo_url': url}).eq('code', method['code']);
+    await ref.read(supabaseClientProvider).from('redlight_payment_methods').update({'logo_url': url}).eq('code', method['code']);
     ref.invalidate(paymentMethodsProvider);
   });
 
@@ -76,7 +76,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
   }
 
   Future<void> _loadDocument() => _run(() async {
-    final row = await ref.read(supabaseClientProvider).from('legal_documents').select().eq('kind', _kind).eq('locale', _locale).maybeSingle();
+    final row = await ref.read(supabaseClientProvider).from('redlight_legal_documents').select().eq('kind', _kind).eq('locale', _locale).maybeSingle();
     _title.text = row?['title'] ?? '';
     _body.text = row?['body'] ?? '';
     if (mounted) setState(() => _documentLoaded = true);
@@ -101,7 +101,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
             trailing: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
               IconButton(tooltip: s.t('upload_logo'), onPressed: _busy ? null : () => _logo(method), icon: const Icon(Icons.upload)),
               Switch(value: method['enabled'] == true, onChanged: _busy ? null : (value) => _run(() async {
-                await ref.read(supabaseClientProvider).from('payment_methods').update({'enabled': value}).eq('code', method['code']);
+                await ref.read(supabaseClientProvider).from('redlight_payment_methods').update({'enabled': value}).eq('code', method['code']);
                 ref.invalidate(paymentMethodsProvider);
               })),
             ]),
@@ -141,7 +141,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
             const SizedBox(height: 16),
             FilledButton(onPressed: _busy ? null : () => _run(() async {
               if (_title.text.trim().isEmpty || _body.text.trim().isEmpty) throw const CommerceException('INVALID_DOCUMENT');
-              await ref.read(supabaseClientProvider).from('legal_documents').upsert({'kind': _kind, 'locale': _locale, 'title': _title.text.trim(), 'body': _body.text.trim(), 'updated_at': DateTime.now().toUtc().toIso8601String()});
+              await ref.read(supabaseClientProvider).from('redlight_legal_documents').upsert({'kind': _kind, 'locale': _locale, 'title': _title.text.trim(), 'body': _body.text.trim(), 'updated_at': DateTime.now().toUtc().toIso8601String()});
               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('saved'))));
             }), child: Text(s.t('save'))),
           ],

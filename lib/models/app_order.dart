@@ -18,7 +18,7 @@ class OrderItem {
   double get lineTotal => unitPrice * quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
-    final product = json['products'] as Map?;
+    final product = (json['redlight_products'] ?? json['products']) as Map?;
     final images = (product?['images'] as List?)?.cast<String>() ?? const [];
     return OrderItem(
       id: json['id'] as String,
@@ -66,7 +66,7 @@ class AppOrder {
     paymentMethod: json['payment_method'] as String?,
     createdAt: DateTime.tryParse(json['created_at'] as String? ?? ''),
     items:
-        (json['order_items'] as List?)
+        ((json['redlight_order_items'] ?? json['order_items']) as List?)
             ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
             .toList() ??
         const [],

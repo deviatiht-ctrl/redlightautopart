@@ -44,39 +44,49 @@ class AdminDashboardScreen extends ConsumerWidget {
               data: (stats) => LayoutBuilder(
                 builder: (context, constraints) {
                   final totalWidth = constraints.maxWidth;
+                  final isSmallMobile = totalWidth < 340;
+                  final isMobile = totalWidth < 700;
+                  final double spacing = isMobile ? 12 : 16;
+
                   double cardWidth;
-                  if (totalWidth < 500) {
-                    cardWidth = totalWidth; // 1 kolòn sou ti telefòn
-                  } else if (totalWidth < 850) {
-                    cardWidth = (totalWidth - 16) / 2; // 2 kolòn
+                  if (isSmallMobile) {
+                    cardWidth = totalWidth;
+                  } else if (isMobile) {
+                    cardWidth = (totalWidth - spacing) / 2; // 2 kolòn sou telefòn
+                  } else if (totalWidth < 1050) {
+                    cardWidth = (totalWidth - (spacing * 2)) / 3;
                   } else {
-                    cardWidth = (totalWidth - 48) / 4; // 4 kolòn sou gwo ekran
+                    cardWidth = (totalWidth - (spacing * 3)) / 4; // 4 kolòn sou gwo ekran
                   }
 
                   return Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
+                    spacing: spacing,
+                    runSpacing: spacing,
                     children: [
                       _StatCard(
                         width: cardWidth,
+                        compact: isMobile,
                         icon: LucideIcons.package,
                         label: s.t('products'),
                         value: '${stats.productCount}',
                       ),
                       _StatCard(
                         width: cardWidth,
+                        compact: isMobile,
                         icon: LucideIcons.receipt,
                         label: s.t('orders_today'),
                         value: '${stats.ordersToday}',
                       ),
                       _StatCard(
                         width: cardWidth,
+                        compact: isMobile,
                         icon: LucideIcons.clock,
                         label: s.t('pending'),
                         value: '${stats.pendingOrders}',
                       ),
                       _StatCard(
                         width: cardWidth,
+                        compact: isMobile,
                         icon: LucideIcons.trendingUp,
                         label: s.t('total_sales'),
                         value: formatPrice(stats.totalRevenue),
@@ -155,18 +165,20 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.width,
+    this.compact = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final double width;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(compact ? 12 : 20),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -176,24 +188,31 @@ class _StatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: compact ? 34 : 40,
+            height: compact ? 34 : 40,
             decoration: BoxDecoration(
               color: AppColors.red.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(compact ? 8 : 10),
             ),
-            child: Icon(icon, size: 20, color: AppColors.red),
+            child: Icon(icon, size: compact ? 17 : 20, color: AppColors.red),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: compact ? 10 : 16),
           Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: compact ? 17 : 22,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: compact ? 11 : 13,
               color: AppColors.textMutedLight,
             ),
           ),

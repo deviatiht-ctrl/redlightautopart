@@ -195,11 +195,17 @@ class _TrackingEditorDialogState extends ConsumerState<TrackingEditorDialog> {
       _ => [widget.order.status],
     };
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 32,
+        vertical: 16,
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 580, maxHeight: 720),
         child: Padding(
-          padding: const EdgeInsets.all(22),
+          padding: EdgeInsets.all(isMobile ? 14 : 22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

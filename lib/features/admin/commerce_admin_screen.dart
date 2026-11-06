@@ -87,12 +87,15 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
     final s = ref.watch(stringsProvider);
     final methods = ref.watch(paymentMethodsProvider);
     final withdrawals = ref.watch(withdrawalsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final contentPadding = EdgeInsets.symmetric(horizontal: isMobile ? 12 : 24, vertical: 16);
+
     return DefaultTabController(length: 3, child: Scaffold(
       appBar: AppBar(title: Text(s.t('commerce_admin')), bottom: TabBar(isScrollable: true, tabs: [
         Tab(text: s.t('payment_method')), Tab(text: s.t('withdrawals')), Tab(text: s.t('legal_documents')),
       ])),
       body: Column(children: [if (_busy) const LinearProgressIndicator(), Expanded(child: TabBarView(children: [
-        methods.when(loading: () => const Center(child: CircularProgressIndicator()), error: (_, _) => Center(child: TextButton(onPressed: () => ref.invalidate(paymentMethodsProvider), child: Text(s.t('retry')))), data: (list) => ListView(padding: const EdgeInsets.all(24), children: [
+        methods.when(loading: () => const Center(child: CircularProgressIndicator()), error: (_, _) => Center(child: TextButton(onPressed: () => ref.invalidate(paymentMethodsProvider), child: Text(s.t('retry')))), data: (list) => ListView(padding: contentPadding, children: [
           Text(s.t('payment_activation_notice')),
           const SizedBox(height: 16),
           for (final method in list) Card(child: ListTile(
@@ -107,7 +110,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
             ]),
           )),
         ])),
-        ListView(padding: const EdgeInsets.all(24), children: [
+        ListView(padding: contentPadding, children: [
           Text(s.t('withdrawal_warning')),
           const SizedBox(height: 16),
           TextField(controller: _amount, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: '${s.t('amount')} (HTG)')),
@@ -127,7 +130,7 @@ class _CommerceAdminScreenState extends ConsumerState<CommerceAdminScreen> {
             }), icon: const Icon(Icons.refresh)),
           ))])),
         ]),
-        ListView(padding: const EdgeInsets.all(24), children: [
+        ListView(padding: contentPadding, children: [
           Text(s.t('legal_admin_notice')),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(initialValue: _kind, items: [for (final kind in ['terms','privacy','support']) DropdownMenuItem(value: kind, child: Text(s.t(kind)))], onChanged: _busy ? null : (v) => setState(() { _kind = v!; _documentLoaded = false; })),

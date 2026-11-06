@@ -140,12 +140,18 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
     final categories = ref.watch(categoriesProvider);
     final isEdit = widget.product != null;
     final s = ref.watch(stringsProvider);
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 32,
+        vertical: isMobile ? 16 : 24,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 720),
+        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 740),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
           child: Form(
             key: _formKey,
             child: ListView(

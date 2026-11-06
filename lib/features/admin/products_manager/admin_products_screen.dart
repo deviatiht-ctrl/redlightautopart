@@ -112,106 +112,255 @@ class AdminProductsScreen extends ConsumerWidget {
                         title: s.t('no_products'),
                         subtitle: s.t('no_products_sub'),
                       )
-                    : Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: MediaQuery.sizeOf(context).width - (hPadding * 2) - 32,
-                              ),
-                              child: DataTable(
-                                columns: [
-                                  DataColumn(label: Text(s.t('products'))),
-                                  DataColumn(label: Text(s.t('category'))),
-                                  DataColumn(label: Text(s.t('price'))),
-                                  DataColumn(label: Text(s.t('stock'))),
-                                  DataColumn(label: Text(s.t('actions'))),
-                                ],
-                                rows: [
-                                  for (final p in list)
-                                    DataRow(
-                                      cells: [
-                                        DataCell(
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isMobile = constraints.maxWidth < 750;
+
+                          if (isMobile) {
+                            // Layout Mobil: Lis kat adaptif san okenn woulo orizontal
+                            return ListView.separated(
+                              itemCount: list.length,
+                              separatorBuilder: (_, _) => const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final p = list[index];
+                                final inStock = p.stock > 0;
+                                return Card(
+                                  elevation: 0.5,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: const BorderSide(color: AppColors.borderLight),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: SizedBox(
+                                            width: 54,
+                                            height: 54,
+                                            child: p.imageUrl != null
+                                                ? CachedNetworkImage(
+                                                    imageUrl: p.imageUrl!,
+                                                    fit: BoxFit.cover,
+                                                    errorWidget: (_, _, _) => _fallback(),
+                                                  )
+                                                : _fallback(),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: SizedBox(
-                                                  width: 40,
-                                                  height: 40,
-                                                  child: p.imageUrl != null
-                                                      ? CachedNetworkImage(
-                                                          imageUrl: p.imageUrl!,
-                                                          fit: BoxFit.cover,
-                                                          errorWidget: (_, _, _) => _fallback(),
-                                                        )
-                                                      : _fallback(),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              ConstrainedBox(
-                                                constraints: const BoxConstraints(maxWidth: 240),
-                                                child: Text(
-                                                  p.name,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                                ),
-                                              ),
-                                              if (p.isDemo)
-                                                Container(
-                                                  margin: const EdgeInsets.only(left: 8),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.warning.withValues(alpha: 0.12),
-                                                    borderRadius: BorderRadius.circular(999),
-                                                  ),
-                                                  child: Text(
-                                                    s.t('demo_product'),
-                                                    style: const TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: AppColors.warning,
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      p.name,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
                                                     ),
                                                   ),
+                                                  if (p.isDemo)
+                                                    Container(
+                                                      margin: const EdgeInsets.only(left: 6),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.warning.withValues(alpha: 0.12),
+                                                        borderRadius: BorderRadius.circular(999),
+                                                      ),
+                                                      child: Text(
+                                                        s.t('demo_product'),
+                                                        style: const TextStyle(
+                                                          fontSize: 9,
+                                                          fontWeight: FontWeight.w700,
+                                                          color: AppColors.warning,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    formatPrice(p.price),
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w900,
+                                                      color: AppColors.red,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: inStock
+                                                          ? AppColors.success.withValues(alpha: 0.1)
+                                                          : AppColors.red.withValues(alpha: 0.1),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                    child: Text(
+                                                      inStock ? '${p.stock} nan stock' : 'Fin stock',
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: inStock ? AppColors.success : AppColors.red,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                p.categoryName ?? '—',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: AppColors.textMutedLight,
                                                 ),
+                                              ),
                                             ],
                                           ),
                                         ),
-                                        DataCell(Text(p.categoryName ?? '—')),
-                                        DataCell(Text(formatPrice(p.price))),
-                                        DataCell(Text('${p.stock}')),
-                                        DataCell(
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                icon: const Icon(LucideIcons.pencil, size: 18),
-                                                tooltip: s.t('edit'),
-                                                onPressed: () => showDialog(
-                                                  context: context,
-                                                  builder: (_) => ProductFormDialog(product: p),
-                                                ),
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                              icon: const Icon(LucideIcons.pencil, size: 17),
+                                              tooltip: s.t('edit'),
+                                              onPressed: () => showDialog(
+                                                context: context,
+                                                builder: (_) => ProductFormDialog(product: p),
                                               ),
-                                              IconButton(
-                                                icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
-                                                tooltip: s.t('delete'),
-                                                onPressed: () => _delete(context, ref, p),
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                              icon: const Icon(LucideIcons.trash2, size: 17, color: AppColors.red),
+                                              tooltip: s.t('delete'),
+                                              onPressed: () => _delete(context, ref, p),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                ],
+                                  ),
+                                );
+                              },
+                            );
+                          }
+
+                          // Layout Desktop / Gran Ekran: Tablo DataTable konplè
+                          return Card(
+                            clipBehavior: Clip.antiAlias,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: constraints.maxWidth,
+                                  ),
+                                  child: DataTable(
+                                    columns: [
+                                      DataColumn(label: Text(s.t('products'))),
+                                      DataColumn(label: Text(s.t('category'))),
+                                      DataColumn(label: Text(s.t('price'))),
+                                      DataColumn(label: Text(s.t('stock'))),
+                                      DataColumn(label: Text(s.t('actions'))),
+                                    ],
+                                    rows: [
+                                      for (final p in list)
+                                        DataRow(
+                                          cells: [
+                                            DataCell(
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: SizedBox(
+                                                      width: 40,
+                                                      height: 40,
+                                                      child: p.imageUrl != null
+                                                          ? CachedNetworkImage(
+                                                              imageUrl: p.imageUrl!,
+                                                              fit: BoxFit.cover,
+                                                              errorWidget: (_, _, _) => _fallback(),
+                                                            )
+                                                          : _fallback(),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  ConstrainedBox(
+                                                    constraints: const BoxConstraints(maxWidth: 240),
+                                                    child: Text(
+                                                      p.name,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                                    ),
+                                                  ),
+                                                  if (p.isDemo)
+                                                    Container(
+                                                      margin: const EdgeInsets.only(left: 8),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.warning.withValues(alpha: 0.12),
+                                                        borderRadius: BorderRadius.circular(999),
+                                                      ),
+                                                      child: Text(
+                                                        s.t('demo_product'),
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.w700,
+                                                          color: AppColors.warning,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            DataCell(Text(p.categoryName ?? '—')),
+                                            DataCell(Text(formatPrice(p.price))),
+                                            DataCell(Text('${p.stock}')),
+                                            DataCell(
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(LucideIcons.pencil, size: 18),
+                                                    tooltip: s.t('edit'),
+                                                    onPressed: () => showDialog(
+                                                      context: context,
+                                                      builder: (_) => ProductFormDialog(product: p),
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
+                                                    tooltip: s.t('delete'),
+                                                    onPressed: () => _delete(context, ref, p),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
               ),
             ),

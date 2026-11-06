@@ -291,11 +291,17 @@ class _CategoryFormDialogState extends ConsumerState<_CategoryFormDialog> {
   Widget build(BuildContext context) {
     final isEdit = widget.category != null;
     final s = ref.watch(stringsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 32,
+        vertical: 16,
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? 16 : 28),
           child: Form(
             key: _formKey,
             child: Column(

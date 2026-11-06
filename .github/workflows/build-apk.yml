@@ -1,0 +1,66 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Flutter APK (Release)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK Release
+        run: flutter build apk --release
+
+      - name: Rename APK for release
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/redlight-autoparts-release.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redlight-autoparts-release-apk
+          path: build/app/outputs/flutter-apk/redlight-autoparts-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create or Update GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-release
+          name: "Redlight Autoparts Release v1.0.0"
+          body: |
+            ## Redlight Autoparts Release APK
+            - Panel Admin 100% responsive pou mobil, tablèt ak desktop.
+            - Bottom Navigation Bar entegre sou telefon.
+            - Jesyon Pwodwi & Ofri yo nan kat mobil adaptif.
+            - Konekte sou nouvo baz done Supabase `redlight_*`.
+          draft: false
+          prerelease: false
+          files: build/app/outputs/flutter-apk/redlight-autoparts-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

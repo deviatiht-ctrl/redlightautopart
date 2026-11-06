@@ -52,50 +52,134 @@ class AdminShell extends ConsumerWidget {
           );
         }
 
-        // Layout Mobil & Tablèt ak Drawer
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.white,
-            elevation: 1,
-            title: Row(
-              children: [
-                ClipOval(
-                  child: Image.asset(
-                    'assets/images/logo.jpeg',
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(LucideIcons.shieldCheck, color: AppColors.red),
+        // Layout Mobil & Tablèt ak NavigationBar anba + Drawer
+        final currentPath = GoRouterState.of(context).uri.path;
+        final isPhone = MediaQuery.sizeOf(context).width < 700;
+
+        int selectedIndex = 0;
+        if (currentPath == '/admin/products') {
+          selectedIndex = 1;
+        } else if (currentPath == '/admin/orders') {
+          selectedIndex = 2;
+        } else if (currentPath == '/admin/offers') {
+          selectedIndex = 3;
+        } else if (currentPath == '/admin') {
+          selectedIndex = 0;
+        } else {
+          selectedIndex = 4; // Kategori oswa Commerce ki nan Meni/Drawer
+        }
+
+        return Builder(
+          builder: (scaffoldContext) => Scaffold(
+            appBar: AppBar(
+              backgroundColor: AppColors.white,
+              elevation: 0.5,
+              titleSpacing: 0,
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/logo.jpeg',
+                      width: 28,
+                      height: 28,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(LucideIcons.shieldCheck, color: AppColors.red, size: 24),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'REDLIGHT ADMIN',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                    color: AppColors.black,
+                  const SizedBox(width: 8),
+                  const Flexible(
+                    child: Text(
+                      'REDLIGHT ADMIN',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        color: AppColors.black,
+                      ),
+                    ),
                   ),
-                ),
+                ],
+              ),
+              actions: [
+                if (!isPhone)
+                  TextButton.icon(
+                    onPressed: () => context.go('/'),
+                    icon: const Icon(LucideIcons.store, size: 16, color: AppColors.red),
+                    label: Text(
+                      s.t('view_store'),
+                      style: const TextStyle(color: AppColors.red, fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
+                  )
+                else
+                  IconButton(
+                    tooltip: s.t('view_store'),
+                    onPressed: () => context.go('/'),
+                    icon: const Icon(LucideIcons.store, size: 20, color: AppColors.red),
+                  ),
+                const SizedBox(width: 4),
               ],
             ),
-            actions: [
-              TextButton.icon(
-                onPressed: () => context.go('/'),
-                icon: const Icon(LucideIcons.store, size: 16, color: AppColors.red),
-                label: Text(
-                  s.t('view_store'),
-                  style: const TextStyle(color: AppColors.red, fontSize: 12, fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
+            drawer: Drawer(
+              child: _AdminSidebar(items: _items, s: s, isDrawer: true),
+            ),
+            body: child,
+            bottomNavigationBar: isPhone
+                ? NavigationBar(
+                    height: 64,
+                    selectedIndex: selectedIndex,
+                    indicatorColor: AppColors.red.withValues(alpha: 0.15),
+                    labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                    onDestinationSelected: (idx) {
+                      switch (idx) {
+                        case 0:
+                          context.go('/admin');
+                          break;
+                        case 1:
+                          context.go('/admin/products');
+                          break;
+                        case 2:
+                          context.go('/admin/orders');
+                          break;
+                        case 3:
+                          context.go('/admin/offers');
+                          break;
+                        case 4:
+                          Scaffold.of(scaffoldContext).openDrawer();
+                          break;
+                      }
+                    },
+                    destinations: [
+                      NavigationDestination(
+                        icon: const Icon(LucideIcons.layoutDashboard, size: 20),
+                        selectedIcon: const Icon(LucideIcons.layoutDashboard, size: 20, color: AppColors.red),
+                        label: s.t('dashboard'),
+                      ),
+                      NavigationDestination(
+                        icon: const Icon(LucideIcons.package, size: 20),
+                        selectedIcon: const Icon(LucideIcons.package, size: 20, color: AppColors.red),
+                        label: s.t('products'),
+                      ),
+                      NavigationDestination(
+                        icon: const Icon(LucideIcons.receipt, size: 20),
+                        selectedIcon: const Icon(LucideIcons.receipt, size: 20, color: AppColors.red),
+                        label: s.t('orders'),
+                      ),
+                      NavigationDestination(
+                        icon: const Icon(LucideIcons.sparkles, size: 20),
+                        selectedIcon: const Icon(LucideIcons.sparkles, size: 20, color: AppColors.red),
+                        label: 'Òf',
+                      ),
+                      const NavigationDestination(
+                        icon: Icon(LucideIcons.menu, size: 20),
+                        selectedIcon: Icon(LucideIcons.menu, size: 20, color: AppColors.red),
+                        label: 'Meni',
+                      ),
+                    ],
+                  )
+                : null,
           ),
-          drawer: Drawer(
-            child: _AdminSidebar(items: _items, s: s, isDrawer: true),
-          ),
-          body: child,
         );
       },
     );

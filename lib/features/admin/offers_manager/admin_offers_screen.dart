@@ -131,79 +131,76 @@ class AdminOffersScreen extends ConsumerWidget {
                     separatorBuilder: (_, _) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final offer = offers[index];
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.borderLight),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Banner thumbnail
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: SizedBox(
-                                width: 140,
-                                height: 80,
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    CachedNetworkImage(
-                                      imageUrl: offer.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorWidget: (_, _, _) => Container(
-                                        color: Colors.grey.shade300,
-                                        child: const Icon(LucideIcons.imageOff, color: Colors.grey),
-                                      ),
-                                    ),
-                                    // Shop Now button indicator in thumbnail
-                                    Align(
-                                      alignment: Alignment(offer.buttonAlignmentX, offer.buttonAlignmentY),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.shade800,
-                                          borderRadius: BorderRadius.circular(3),
-                                        ),
-                                        child: Text(
-                                          offer.buttonText,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 7,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                      return LayoutBuilder(
+                        builder: (context, cardConstraints) {
+                          final isCardMobile = cardConstraints.maxWidth < 620;
+
+                          Widget buildThumbnail({double? width, double? height, double aspectRatio = 2.3}) {
+                            final image = Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl: offer.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, _, _) => Container(
+                                    color: Colors.grey.shade300,
+                                    child: const Icon(LucideIcons.imageOff, color: Colors.grey),
+                                  ),
                                 ),
+                                Align(
+                                  alignment: Alignment(offer.buttonAlignmentX, offer.buttonAlignmentY),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade800,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text(
+                                      offer.buttonText,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 7,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: width != null && height != null
+                                  ? SizedBox(width: width, height: height, child: image)
+                                  : AspectRatio(aspectRatio: aspectRatio, child: image),
+                            );
+                          }
+
+                          if (isCardMobile) {
+                            // Layout Mobil: Bannière sou tout lajè a, detay ak aksyon anba
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.borderLight),
                               ),
-                            ),
-                            const SizedBox(width: 18),
-                            // Details
-                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  buildThumbnail(aspectRatio: 2.2),
+                                  const SizedBox(height: 12),
                                   Row(
                                     children: [
-                                      Text(
-                                        offer.title.isEmpty ? 'Flyer Promo' : offer.title,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
+                                      Expanded(
+                                        child: Text(
+                                          offer.title.isEmpty ? 'Flyer Promo' : offer.title,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(width: 10),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
@@ -227,48 +224,140 @@ class AdminOffersScreen extends ConsumerWidget {
                                     const SizedBox(height: 4),
                                     Text(
                                       offer.subtitle!,
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                                     ),
                                   ],
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      Icon(LucideIcons.mousePointerClick, size: 14, color: Colors.grey.shade500),
+                                      Icon(LucideIcons.mousePointerClick, size: 13, color: Colors.grey.shade500),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        'Bouton: "${offer.buttonText}" (X: ${offer.buttonAlignmentX.toStringAsFixed(1)}, Y: ${offer.buttonAlignmentY.toStringAsFixed(1)})',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                                      ),
-                                      if (offer.productId != null) ...[
-                                        const SizedBox(width: 12),
-                                        Icon(LucideIcons.link2, size: 14, color: Colors.grey.shade500),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          'Produit lié',
-                                          style: TextStyle(fontSize: 12, color: AppColors.info, fontWeight: FontWeight.w600),
+                                      Expanded(
+                                        child: Text(
+                                          'Bouton: "${offer.buttonText}"',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                                         ),
-                                      ],
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(LucideIcons.pencil, size: 18),
+                                        tooltip: s.t('edit_offer'),
+                                        onPressed: () => showDialog(
+                                          context: context,
+                                          builder: (_) => OfferFormDialog(offer: offer),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
+                                        tooltip: s.t('delete_offer'),
+                                        onPressed: () => _delete(context, ref, offer),
+                                      ),
                                     ],
                                   ),
                                 ],
                               ),
+                            );
+                          }
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            // Actions
-                            IconButton(
-                              icon: const Icon(LucideIcons.pencil, size: 18),
-                              tooltip: s.t('edit_offer'),
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (_) => OfferFormDialog(offer: offer),
-                              ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                buildThumbnail(width: 140, height: 80),
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            offer.title.isEmpty ? 'Flyer Promo' : offer.title,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: offer.isActive
+                                                  ? AppColors.success.withValues(alpha: 0.15)
+                                                  : Colors.grey.withValues(alpha: 0.2),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              offer.isActive ? s.t('active') : s.t('inactive'),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: offer.isActive ? AppColors.success : Colors.grey,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (offer.subtitle != null && offer.subtitle!.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          offer.subtitle!,
+                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Icon(LucideIcons.mousePointerClick, size: 14, color: Colors.grey.shade500),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Bouton: "${offer.buttonText}" (X: ${offer.buttonAlignmentX.toStringAsFixed(1)}, Y: ${offer.buttonAlignmentY.toStringAsFixed(1)})',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                                          ),
+                                          if (offer.productId != null) ...[
+                                            const SizedBox(width: 12),
+                                            Icon(LucideIcons.link2, size: 14, color: Colors.grey.shade500),
+                                            const SizedBox(width: 4),
+                                            const Text(
+                                              'Produit lié',
+                                              style: TextStyle(fontSize: 12, color: AppColors.info, fontWeight: FontWeight.w600),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(LucideIcons.pencil, size: 18),
+                                  tooltip: s.t('edit_offer'),
+                                  onPressed: () => showDialog(
+                                    context: context,
+                                    builder: (_) => OfferFormDialog(offer: offer),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
+                                  tooltip: s.t('delete_offer'),
+                                  onPressed: () => _delete(context, ref, offer),
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.red),
-                              tooltip: s.t('delete_offer'),
-                              onPressed: () => _delete(context, ref, offer),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       );
                     },
                   );

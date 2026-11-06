@@ -138,14 +138,19 @@ class _OfferFormDialogState extends ConsumerState<OfferFormDialog> {
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
     final products = ref.watch(adminProductsProvider).asData?.value ?? const <Product>[];
+    final isMobile = MediaQuery.of(context).size.width < 650;
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 32,
+        vertical: 16,
+      ),
       backgroundColor: AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720, maxHeight: 850),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(isMobile ? 16 : 28),
           child: Form(
             key: _formKey,
             child: Column(
@@ -350,49 +355,79 @@ class _OfferFormDialogState extends ConsumerState<OfferFormDialog> {
                               ),
                               const SizedBox(height: 12),
                               // Slider X
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: 140,
-                                    child: Text(
-                                      '${s.t('position_x')} (${_alignX.toStringAsFixed(2)}) :',
-                                      style: const TextStyle(fontSize: 12),
+                              if (isMobile) ...[
+                                Text(
+                                  '${s.t('position_x')} (${_alignX.toStringAsFixed(2)}) :',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                                Slider(
+                                  value: _alignX,
+                                  min: -0.9,
+                                  max: 0.9,
+                                  divisions: 36,
+                                  activeColor: AppColors.red,
+                                  onChanged: (v) => setState(() => _alignX = v),
+                                ),
+                              ] else ...[
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 140,
+                                      child: Text(
+                                        '${s.t('position_x')} (${_alignX.toStringAsFixed(2)}) :',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Slider(
-                                      value: _alignX,
-                                      min: -0.9,
-                                      max: 0.9,
-                                      divisions: 36,
-                                      activeColor: AppColors.red,
-                                      onChanged: (v) => setState(() => _alignX = v),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _alignX,
+                                        min: -0.9,
+                                        max: 0.9,
+                                        divisions: 36,
+                                        activeColor: AppColors.red,
+                                        onChanged: (v) => setState(() => _alignX = v),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
+                              ],
                               // Slider Y
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: 140,
-                                    child: Text(
-                                      '${s.t('position_y')} (${_alignY.toStringAsFixed(2)}) :',
-                                      style: const TextStyle(fontSize: 12),
+                              if (isMobile) ...[
+                                Text(
+                                  '${s.t('position_y')} (${_alignY.toStringAsFixed(2)}) :',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                                Slider(
+                                  value: _alignY,
+                                  min: -0.9,
+                                  max: 0.9,
+                                  divisions: 36,
+                                  activeColor: AppColors.red,
+                                  onChanged: (v) => setState(() => _alignY = v),
+                                ),
+                              ] else ...[
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 140,
+                                      child: Text(
+                                        '${s.t('position_y')} (${_alignY.toStringAsFixed(2)}) :',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Slider(
-                                      value: _alignY,
-                                      min: -0.9,
-                                      max: 0.9,
-                                      divisions: 36,
-                                      activeColor: AppColors.red,
-                                      onChanged: (v) => setState(() => _alignY = v),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _alignY,
+                                        min: -0.9,
+                                        max: 0.9,
+                                        divisions: 36,
+                                        activeColor: AppColors.red,
+                                        onChanged: (v) => setState(() => _alignY = v),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -422,64 +457,108 @@ class _OfferFormDialogState extends ConsumerState<OfferFormDialog> {
                         const SizedBox(height: 12),
 
                         // Title & Subtitle (Optionnels sur le design)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _title,
-                                decoration: const InputDecoration(
-                                  labelText: 'Titre de l\'offre',
-                                  hintText: 'ex: Get your tyres winter-ready',
-                                ),
-                                onChanged: (_) => setState(() {}),
-                              ),
+                        if (isMobile) ...[
+                          TextFormField(
+                            controller: _title,
+                            decoration: const InputDecoration(
+                              labelText: 'Titre de l\'offre',
+                              hintText: 'ex: Get your tyres winter-ready',
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _subtitle,
-                                decoration: const InputDecoration(
-                                  labelText: 'Sous-titre / accroche',
-                                  hintText: 'ex: Freeze warning ahead',
-                                ),
-                                onChanged: (_) => setState(() {}),
-                              ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _subtitle,
+                            decoration: const InputDecoration(
+                              labelText: 'Sous-titre / accroche',
+                              hintText: 'ex: Freeze warning ahead',
                             ),
-                          ],
-                        ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _title,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Titre de l\'offre',
+                                    hintText: 'ex: Get your tyres winter-ready',
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _subtitle,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Sous-titre / accroche',
+                                    hintText: 'ex: Freeze warning ahead',
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 12),
 
                         // Button Label & Color
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: TextFormField(
-                                controller: _buttonText,
-                                decoration: InputDecoration(
-                                  labelText: s.t('button_text'),
-                                  hintText: 'SHOP NOW',
+                        if (isMobile) ...[
+                          TextFormField(
+                            controller: _buttonText,
+                            decoration: InputDecoration(
+                              labelText: s.t('button_text'),
+                              hintText: 'SHOP NOW',
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            initialValue: _buttonColor,
+                            decoration: const InputDecoration(labelText: 'Couleur bouton'),
+                            items: const [
+                              DropdownMenuItem(value: '#FF5000', child: Text('Orange Autodoc')),
+                              DropdownMenuItem(value: '#E10600', child: Text('Rouge Redlight')),
+                              DropdownMenuItem(value: '#2563EB', child: Text('Bleu')),
+                              DropdownMenuItem(value: '#10B981', child: Text('Vert')),
+                              DropdownMenuItem(value: '#111827', child: Text('Noir')),
+                            ],
+                            onChanged: (v) => setState(() => _buttonColor = v ?? '#FF5000'),
+                          ),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  controller: _buttonText,
+                                  decoration: InputDecoration(
+                                    labelText: s.t('button_text'),
+                                    hintText: 'SHOP NOW',
+                                  ),
+                                  onChanged: (_) => setState(() {}),
                                 ),
-                                onChanged: (_) => setState(() {}),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _buttonColor,
-                                decoration: const InputDecoration(labelText: 'Couleur bouton'),
-                                items: const [
-                                  DropdownMenuItem(value: '#FF5000', child: Text('Orange Autodoc')),
-                                  DropdownMenuItem(value: '#E10600', child: Text('Rouge Redlight')),
-                                  DropdownMenuItem(value: '#2563EB', child: Text('Bleu')),
-                                  DropdownMenuItem(value: '#10B981', child: Text('Vert')),
-                                  DropdownMenuItem(value: '#111827', child: Text('Noir')),
-                                ],
-                                onChanged: (v) => setState(() => _buttonColor = v ?? '#FF5000'),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: _buttonColor,
+                                  decoration: const InputDecoration(labelText: 'Couleur bouton'),
+                                  items: const [
+                                    DropdownMenuItem(value: '#FF5000', child: Text('Orange Autodoc')),
+                                    DropdownMenuItem(value: '#E10600', child: Text('Rouge Redlight')),
+                                    DropdownMenuItem(value: '#2563EB', child: Text('Bleu')),
+                                    DropdownMenuItem(value: '#10B981', child: Text('Vert')),
+                                    DropdownMenuItem(value: '#111827', child: Text('Noir')),
+                                  ],
+                                  onChanged: (v) => setState(() => _buttonColor = v ?? '#FF5000'),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 12),
 
                         // Product Redirect Selector

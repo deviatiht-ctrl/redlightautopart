@@ -209,11 +209,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.black : const Color(0xFFF7F8FA),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.red,
-          onRefresh: _refresh,
-          child: ResponsiveContainer(
-            maxWidth: Responsive.maxContentWidth,
+        child: ResponsiveContainer(
+          maxWidth: Responsive.maxContentWidth,
+          child: RefreshIndicator(
+            color: AppColors.red,
+            onRefresh: _refresh,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [

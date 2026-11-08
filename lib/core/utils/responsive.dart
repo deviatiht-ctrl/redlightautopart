@@ -67,14 +67,30 @@ class ResponsiveContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: alignment,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: padding != null
-            ? Padding(padding: padding!, child: child)
-            : child,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth.isFinite && constraints.maxWidth > maxWidth
+            ? maxWidth
+            : (constraints.maxWidth.isFinite ? constraints.maxWidth : maxWidth);
+
+        Widget content = ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: padding != null ? Padding(padding: padding!, child: child) : child,
+        );
+
+        if (constraints.maxHeight.isFinite) {
+          content = SizedBox(
+            width: w,
+            height: constraints.maxHeight,
+            child: padding != null ? Padding(padding: padding!, child: child) : child,
+          );
+        }
+
+        return Align(
+          alignment: alignment,
+          child: content,
+        );
+      },
     );
   }
 }

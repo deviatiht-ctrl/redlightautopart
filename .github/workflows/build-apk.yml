@@ -64,6 +64,8 @@ jobs:
             - Konekte sou nouvo baz done Supabase `redlight_*`.
           draft: false
           prerelease: false
+          overwrite: true
+          make_latest: true
           files: build/app/outputs/flutter-apk/redlight-autoparts-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

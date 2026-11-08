@@ -322,53 +322,25 @@ class RedlightApp extends ConsumerWidget {
     Intl.defaultLocale =
         locale.languageCode == 'ht' ? 'fr' : locale.toLanguageTag();
 
-    // Tèm sombre pou app kliyan, tèm clè pou /admin.
-    return ListenableBuilder(
-      listenable: router.routerDelegate,
-      builder: (context, _) {
-        final path = router.routerDelegate.currentConfiguration.uri.path;
-        final isAdmin = path.startsWith('/admin');
-        return MaterialApp.router(
-          title: AppConstants.appName,
-          debugShowCheckedModeBanner: false,
-          theme: buildLightTheme(),
-          darkTheme: buildDarkTheme(),
-          themeMode: isAdmin ? ThemeMode.light : themeMode,
-          routerConfig: router,
-          locale: locale,
-          supportedLocales: supportedLocales,
-          localizationsDelegates: const [
-            _HtMaterialLocalizationsDelegate(),
-            _HtCupertinoLocalizationsDelegate(),
-            _HtWidgetsLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          builder: (context, child) {
-            // Anpeche ekran gri nan release si yon widget rankontre yon ti erè
-            ErrorWidget.builder = (FlutterErrorDetails details) {
-              return Material(
-                color: Colors.transparent,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'Erè nan afichaj la. Tanpri relanse paj la.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            };
-            return child ?? const SizedBox.shrink();
-          },
-        );
+    return MaterialApp.router(
+      title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: themeMode,
+      routerConfig: router,
+      locale: locale,
+      supportedLocales: supportedLocales,
+      localizationsDelegates: const [
+        _HtMaterialLocalizationsDelegate(),
+        _HtCupertinoLocalizationsDelegate(),
+        _HtWidgetsLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        return child ?? const SizedBox.shrink();
       },
     );
   }

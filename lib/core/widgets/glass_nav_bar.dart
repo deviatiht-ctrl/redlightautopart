@@ -34,6 +34,7 @@ class GlassNavBar extends ConsumerWidget {
       top: false,
       child: Align(
         alignment: Alignment.bottomCenter,
+        heightFactor: 1.0,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: ConstrainedBox(

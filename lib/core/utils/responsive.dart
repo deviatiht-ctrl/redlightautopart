@@ -67,30 +67,21 @@ class ResponsiveContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth.isFinite && constraints.maxWidth > maxWidth
-            ? maxWidth
-            : (constraints.maxWidth.isFinite ? constraints.maxWidth : maxWidth);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final content = padding != null ? Padding(padding: padding!, child: child) : child;
 
-        Widget content = ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: padding != null ? Padding(padding: padding!, child: child) : child,
-        );
+    // Sou mobil ak tablèt kote ekran an pi piti pase maxWidth:
+    // Retounen kontni an dirèkteman pou pa afekte defileman CustomScrollView / ListView.
+    if (screenWidth <= maxWidth) {
+      return content;
+    }
 
-        if (constraints.maxHeight.isFinite) {
-          content = SizedBox(
-            width: w,
-            height: constraints.maxHeight,
-            child: padding != null ? Padding(padding: padding!, child: child) : child,
-          );
-        }
-
-        return Align(
-          alignment: alignment,
-          child: content,
-        );
-      },
+    return Align(
+      alignment: alignment,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: content,
+      ),
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../core/utils/responsive.dart';
 import '../../core/widgets/shimmer_loader.dart';
 import '../../models/category.dart';
 import '../../providers/catalog_providers.dart';
+import '../../providers/core_providers.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/offers_provider.dart';
 

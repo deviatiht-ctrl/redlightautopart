@@ -222,7 +222,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   carName: _selectedVehicle,
                   carSpec: _selectedVehicleSpec,
                   onTap: () => _showVehicleSelector(context),
-                  onAdminTap: kIsWeb ? () => context.go('/admin') : null,
+                  onAdminTap: (kIsWeb || (ref.watch(isAdminProvider).asData?.value ?? false)) ? () => context.go('/admin') : null,
                 ),
               ),
 

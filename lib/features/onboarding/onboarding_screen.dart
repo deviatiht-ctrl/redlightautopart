@@ -39,7 +39,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _finish() async {
     await ref.read(localStoreProvider).setOnboardingDone();
-    if (mounted) context.go('/auth');
+    if (mounted) context.go('/');
   }
 
   @override

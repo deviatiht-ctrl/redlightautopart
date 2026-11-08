@@ -93,32 +93,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/account/password';
       }
 
-      // Sou Web, aplikasyon an louvri dirèkteman pou tout vizitè (boutik disponib san login fòse)
+      // Sèlman wout pwoteje yo ki mande koneksyon (kont, peman, kòmand, checkout)
+      final isProtected = path.startsWith('/account/') ||
+          path.startsWith('/payment/') ||
+          path == '/checkout' ||
+          path == '/orders';
+
+      if (!loggedIn && isProtected) {
+        return '/auth?redirect=${Uri.encodeComponent(path)}';
+      }
+
+      // Sou Web, boutik disponib dirèkteman san onboarding
       if (kIsWeb) {
         if (path == '/language' || path == '/onboarding') {
           return '/';
         }
-        // Sèlman wout pwoteje yo ki mande koneksyon sou Web
-        if (!loggedIn && (path.startsWith('/account/') || path.startsWith('/payment/') || path == '/checkout' || path == '/orders')) {
-          return '/auth?redirect=${Uri.encodeComponent(path)}';
-        }
         return null;
       }
 
-      // Seleksyon lang anvan tout bagay (premye lanse sou mobil)
-      if (!languageChosen && path != '/language') return '/language';
+      // Sou mobil: seleksyon lang ak onboarding sèlman sou premye lanse
+      if (!languageChosen && path == '/') return '/language';
       if (languageChosen && path == '/language') return '/onboarding';
-
-      // Onboarding anvan tout bagay sou mobil
-      if (!onboardingDone && path != '/onboarding' && path != '/language') {
-        return '/onboarding';
-      }
-      if (onboardingDone && path == '/onboarding') return loggedIn ? '/' : '/auth';
-
-      if (!loggedIn && (path.startsWith('/account/') || path.startsWith('/payment/') || path == '/checkout' || path == '/orders')) {
-        return '/auth?redirect=${Uri.encodeComponent(path)}';
-      }
-      if (!loggedIn && !store.guestMode && path != '/auth' && path != '/language' && path != '/onboarding') return '/auth';
+      if (!onboardingDone && path == '/') return '/onboarding';
+      if (onboardingDone && path == '/onboarding') return '/';
 
       // Deja konekte: pa bezwen wè paj auth la
       if (loggedIn && path == '/auth') {
